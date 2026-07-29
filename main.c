@@ -135,6 +135,7 @@ hid_usage_is_down(USAGE usage)
 static float
 normalize_hid_axis(ULONG value, LONG logical_min, LONG logical_max)
 {
+#if 0
     float t;
     float result;
 
@@ -150,6 +151,23 @@ normalize_hid_axis(ULONG value, LONG logical_min, LONG logical_max)
     if (result < -1.0f) result = -1.0f;
     if (result >  1.0f) result =  1.0f;
 
+    return result;
+#endif 
+
+    if (logical_max == logical_min) {
+        return 0.0f;
+    }
+
+    if (value < logical_min) {
+        value = logical_min;
+    } else if (value > logical_max) {
+        value = logical_max;
+    }
+
+    double range = (double)logical_max - (double)logical_min;
+    double offset = (double)value - (double)logical_min;
+
+    float result = (float)((2.0 * offset / range) - 1.0);        
     return result;
 }
 
@@ -271,7 +289,6 @@ print_gamepad_debug(void)
     if (g_api.gamepad.rshoulder.is_pressed) {
         printf("N64 R pressed\n");
     }
-
     printf("stick: %.2f, %.2f\n",
            g_api.gamepad.stick.axis.x,
            g_api.gamepad.stick.axis.y);
@@ -564,15 +581,9 @@ WinMain(HINSTANCE inst,
 
         pull_gamepad(g_api.stick_x, g_api.stick_y, g_api.hat);
 
-        if (g_api.gamepad.a.is_pressed) {
-            printf("A is pressed\n");
-        }
-        
-        if (g_api.gamepad.a.is_released) {
-            printf("A is released\n");
-        }
-    }
+        print_gamepad_debug(); 
 
+    }
 
     return 0;
 }
